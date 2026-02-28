@@ -56,7 +56,6 @@ func (s *InboundSession) Mail(from string, opts *smtp.MailOptions) error {
 }
 
 func (s *InboundSession) Rcpt(to string, opts *smtp.RcptOptions) error {
-	// Extract local part and verify it's a local user
 	parts := strings.SplitN(to, "@", 2)
 	if len(parts) != 2 {
 		return &smtp.SMTPError{
@@ -70,6 +69,7 @@ func (s *InboundSession) Rcpt(to string, opts *smtp.RcptOptions) error {
 	var exists int
 	err := s.db.Reader.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&exists)
 	if err != nil || exists == 0 {
+		slog.Warn("smtp: rejected recipient, user not found", "from", s.from, "to", to)
 		return &smtp.SMTPError{
 			Code:         550,
 			EnhancedCode: smtp.EnhancedCode{5, 1, 1},
@@ -124,7 +124,12 @@ func (s *InboundSession) Data(r io.Reader) error {
 }
 
 func (s *InboundSession) deliverToInbox(username, toAddr string, msg *email.ParsedMessage) error {
-	tx, err := s.db.Writer.Begin()
+	return deliverToInbox(s.db, username, toAddr, msg)
+}
+
+// deliverToInbox inserts a message into a local user's INBOX.
+func deliverToInbox(database *db.DB, username, toAddr string, msg *email.ParsedMessage) error {
+	tx, err := database.Writer.Begin()
 	if err != nil {
 		return err
 	}

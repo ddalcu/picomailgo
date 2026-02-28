@@ -30,22 +30,15 @@ services:
   picomailgo:
     image: ghcr.io/ddalcu/picomailgo:latest
     ports:
-      - "25:25"
-      - "80:80"
-      - "443:443"
-      - "587:587"
-      - "993:993"
+      - "2525:2525"
+      - "8080:8080"
+      - "5587:5587"
+      - "9993:9993"
     volumes:
       - mail-data:/data
     environment:
-      MAIL_DOMAIN: mail.example.com
+      MAIL_DOMAIN: localhost
       DATA_DIR: /data
-      WEB_LISTEN: ":443"
-      HTTP_LISTEN: ":80"
-      SMTP_INBOUND_LISTEN: ":25"
-      SMTP_SUBMISSION_LISTEN: ":587"
-      IMAP_LISTEN: ":993"
-      TLS_MODE: autocert
       JWT_SECRET: "replace-with-a-random-secret"
     restart: unless-stopped
 
@@ -57,21 +50,17 @@ volumes:
 docker compose up -d
 ```
 
+Open [http://localhost:8080](http://localhost:8080) to access webmail.
+
 ## Quick Start with Docker
 
 ```bash
-docker run -d \
-  --name picomailgo \
-  -p 25:25 -p 443:443 -p 587:587 -p 993:993 \
+docker run \
+  -p 2525:2525 -p 8080:8080 -p 5587:5587 -p 9993:9993 \
   -v mail-data:/data \
-  -e MAIL_DOMAIN=mail.example.com \
+  -e MAIL_DOMAIN=localhost \
   -e JWT_SECRET=replace-with-a-random-secret \
-  -e TLS_MODE=autocert \
   -e DATA_DIR=/data \
-  -e WEB_LISTEN=:443 \
-  -e SMTP_INBOUND_LISTEN=:25 \
-  -e SMTP_SUBMISSION_LISTEN=:587 \
-  -e IMAP_LISTEN=:993 \
   ghcr.io/ddalcu/picomailgo:latest
 ```
 

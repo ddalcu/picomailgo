@@ -13,6 +13,7 @@ import (
 
 	"picomailgo/internal/config"
 	"picomailgo/internal/db"
+	"picomailgo/internal/email"
 )
 
 // Relay handles outbound email delivery via MX lookup.
@@ -30,11 +31,22 @@ func NewRelay(cfg *config.Config, database *db.DB) *Relay {
 	}
 }
 
-// Send queues a message for outbound delivery.
+// Send delivers a message locally if the recipient is on our domain,
+// otherwise signs with DKIM and relays via MX lookup.
 func (r *Relay) Send(from, to string, raw []byte) error {
-	// DKIM sign the message
-	domain := r.cfg.Server.Domain
-	signed, err := r.signer.Sign(raw, domain)
+	parts := strings.SplitN(to, "@", 2)
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid address: %s", to)
+	}
+	rcptDomain := parts[1]
+
+	// Local delivery — no MX lookup needed
+	if strings.EqualFold(rcptDomain, r.cfg.Server.Domain) {
+		return r.deliverLocal(from, to, parts[0], raw)
+	}
+
+	// DKIM sign for outbound
+	signed, err := r.signer.Sign(raw, r.cfg.Server.Domain)
 	if err != nil {
 		slog.Warn("relay: DKIM sign failed, sending unsigned", "error", err)
 		signed = raw
@@ -50,13 +62,38 @@ func (r *Relay) Send(from, to string, raw []byte) error {
 	return nil
 }
 
+// deliverLocal delivers a message to a local user's INBOX.
+func (r *Relay) deliverLocal(from, to, username string, raw []byte) error {
+	var exists int
+	r.db.Reader.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", username).Scan(&exists)
+	if exists == 0 {
+		slog.Warn("relay: rejected local delivery, user not found", "from", from, "to", to)
+		return fmt.Errorf("user not found: %s", to)
+	}
+
+	parsed, err := email.ParseHeaders(raw)
+	if err != nil {
+		parsed = &email.ParsedMessage{
+			From:    from,
+			Subject: "(no subject)",
+			Date:    time.Now(),
+		}
+	}
+	parsed.Raw = raw
+	if parsed.From == "" {
+		parsed.From = from
+	}
+
+	if err := deliverToInbox(r.db, username, to, parsed); err != nil {
+		return fmt.Errorf("local delivery to %s: %w", to, err)
+	}
+	slog.Info("relay: delivered locally", "from", from, "to", to)
+	return nil
+}
+
 // deliver attempts direct SMTP delivery via MX lookup.
 func (r *Relay) deliver(from, to string, raw []byte) error {
-	parts := strings.SplitN(to, "@", 2)
-	if len(parts) != 2 {
-		return fmt.Errorf("invalid address: %s", to)
-	}
-	domain := parts[1]
+	domain := strings.SplitN(to, "@", 2)[1]
 
 	mxRecords, err := net.LookupMX(domain)
 	if err != nil {
