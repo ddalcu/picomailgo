@@ -7,7 +7,7 @@ import (
 
 	"golang.org/x/crypto/acme/autocert"
 
-	"gogomail/internal/config"
+	"picomailgo/internal/config"
 )
 
 // Setup returns a shared *tls.Config based on the configured mode.
@@ -20,7 +20,7 @@ func Setup(cfg *config.Config) (*tls.Config, error) {
 	case "autocert":
 		m := &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(cfg.Server.Hostname),
+			HostPolicy: autocert.HostWhitelist(cfg.Server.Domain),
 			Cache:      autocert.DirCache(filepath.Join(cfg.Server.DataDir, "certs")),
 		}
 		return m.TLSConfig(), nil

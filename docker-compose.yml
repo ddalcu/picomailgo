@@ -1,5 +1,5 @@
 services:
-  gogomail:
+  picomailgo:
     build: .
     ports:
       - "25:25"
@@ -10,15 +10,15 @@ services:
     volumes:
       - mail-data:/data
     environment:
-      GOGOMAIL_HOSTNAME: mail.example.com
-      GOGOMAIL_DATA_DIR: /data
-      GOGOMAIL_WEB_LISTEN: ":443"
-      GOGOMAIL_HTTP_LISTEN: ":80"
-      GOGOMAIL_SMTP_INBOUND_LISTEN: ":25"
-      GOGOMAIL_SMTP_SUBMISSION_LISTEN: ":587"
-      GOGOMAIL_IMAP_LISTEN: ":993"
-      GOGOMAIL_TLS_MODE: "none"
-      GOGOMAIL_JWT_SECRET: "change-me-to-a-random-secret"
+      MAIL_DOMAIN: mail.example.com
+      DATA_DIR: /data
+      WEB_LISTEN: ":443"
+      HTTP_LISTEN: ":80"
+      SMTP_INBOUND_LISTEN: ":25"
+      SMTP_SUBMISSION_LISTEN: ":587"
+      IMAP_LISTEN: ":993"
+      TLS_MODE: "none"
+      JWT_SECRET: "change-me-to-a-random-secret"
     restart: unless-stopped
 
 volumes:

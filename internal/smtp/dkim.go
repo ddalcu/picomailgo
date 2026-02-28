@@ -11,7 +11,7 @@ import (
 
 	"github.com/emersion/go-msgauth/dkim"
 
-	"gogomail/internal/db"
+	"picomailgo/internal/db"
 )
 
 // DKIMSigner signs outbound messages with DKIM.
@@ -64,6 +64,31 @@ func (s *DKIMSigner) Sign(raw []byte, domain string) ([]byte, error) {
 	}
 
 	return signed.Bytes(), nil
+}
+
+// EnsureKey generates a DKIM key if one doesn't exist, and returns the selector and DNS record value.
+func (s *DKIMSigner) EnsureKey(domain, selector string) (string, string, error) {
+	var pubPEM string
+	var existingSelector string
+	err := s.db.Reader.QueryRow(
+		"SELECT selector, public_key FROM dkim_keys WHERE domain = ? ORDER BY created_at DESC LIMIT 1",
+		domain,
+	).Scan(&existingSelector, &pubPEM)
+	if err == nil {
+		// Key exists — reconstruct DNS value from stored public key
+		block, _ := pem.Decode([]byte(pubPEM))
+		if block != nil {
+			dnsValue := fmt.Sprintf("v=DKIM1; k=rsa; p=%s", stripPEM(string(pem.EncodeToMemory(&pem.Block{Bytes: block.Bytes}))))
+			return existingSelector, dnsValue, nil
+		}
+	}
+
+	// No key found — generate one
+	dnsValue, err := s.GenerateKey(domain, selector)
+	if err != nil {
+		return "", "", err
+	}
+	return selector, dnsValue, nil
 }
 
 // GenerateKey creates a new DKIM key pair and stores it in the database.

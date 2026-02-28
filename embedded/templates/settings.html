@@ -1,9 +1,12 @@
 {{template "layout.html" .}}
 {{define "body"}}
-<div class="app-layout">
+<div class="app-layout app-layout--two-col">
     {{template "partials/sidebar.html" .}}
     <div class="main-content">
         <div class="toolbar">
+            <button class="hamburger" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+            </button>
             <h1>Settings</h1>
         </div>
         {{if .Error}}
@@ -15,15 +18,15 @@
         <form method="POST" action="/settings">
             <div class="form-group">
                 <label for="display_name">Display Name</label>
-                <input type="text" id="display_name" name="display_name" class="form-control" value="{{.DisplayName}}">
+                <input type="text" id="display_name" name="display_name" class="form-control" placeholder="Your display name" value="{{.DisplayName}}">
             </div>
             <div class="form-group">
                 <label for="current_password">Current Password</label>
-                <input type="password" id="current_password" name="current_password" class="form-control">
+                <input type="password" id="current_password" name="current_password" class="form-control" placeholder="Required to change password">
             </div>
             <div class="form-group">
                 <label for="new_password">New Password</label>
-                <input type="password" id="new_password" name="new_password" class="form-control" minlength="8">
+                <input type="password" id="new_password" name="new_password" class="form-control" placeholder="At least 8 characters" minlength="8">
             </div>
             <button type="submit" class="btn btn-primary">Save Changes</button>
         </form>

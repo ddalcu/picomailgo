@@ -4,8 +4,8 @@ import (
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
 
-	"gogomail/internal/auth"
-	"gogomail/internal/db"
+	"picomailgo/internal/auth"
+	"picomailgo/internal/db"
 )
 
 // Backend implements the go-imap backend.Backend interface.

@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
-	"gogomail/internal/config"
-	"gogomail/internal/db"
+	"picomailgo/internal/config"
+	"picomailgo/internal/db"
 )
 
 // Relay handles outbound email delivery via MX lookup.
@@ -33,7 +33,7 @@ func NewRelay(cfg *config.Config, database *db.DB) *Relay {
 // Send queues a message for outbound delivery.
 func (r *Relay) Send(from, to string, raw []byte) error {
 	// DKIM sign the message
-	domain := r.cfg.Server.Hostname
+	domain := r.cfg.Server.Domain
 	signed, err := r.signer.Sign(raw, domain)
 	if err != nil {
 		slog.Warn("relay: DKIM sign failed, sending unsigned", "error", err)
@@ -93,7 +93,7 @@ func (r *Relay) deliverToHost(addr, host, from, to string, raw []byte) error {
 	defer c.Close()
 
 	// Use our actual hostname for EHLO
-	if err := c.Hello(r.cfg.Server.Hostname); err != nil {
+	if err := c.Hello(r.cfg.Server.Domain); err != nil {
 		return fmt.Errorf("EHLO: %w", err)
 	}
 

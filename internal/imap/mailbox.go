@@ -8,7 +8,7 @@ import (
 
 	"github.com/emersion/go-imap"
 
-	"gogomail/internal/db"
+	"picomailgo/internal/db"
 )
 
 // Mailbox implements the go-imap backend.Mailbox interface.
@@ -105,11 +105,21 @@ func (m *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fetch
 }
 
 func (m *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
-	// Basic search: return all message UIDs/sequence numbers
-	rows, err := m.db.Reader.Query(
-		"SELECT uid FROM messages WHERE mailbox_id = ? ORDER BY uid",
-		m.id,
-	)
+	query := "SELECT m.id, m.uid FROM messages m WHERE m.mailbox_id = ?"
+	args := []interface{}{m.id}
+
+	for _, flag := range criteria.WithFlags {
+		query += " AND EXISTS(SELECT 1 FROM message_flags mf WHERE mf.message_id = m.id AND mf.flag = ?)"
+		args = append(args, flag)
+	}
+	for _, flag := range criteria.WithoutFlags {
+		query += " AND NOT EXISTS(SELECT 1 FROM message_flags mf WHERE mf.message_id = m.id AND mf.flag = ?)"
+		args = append(args, flag)
+	}
+
+	query += " ORDER BY m.uid"
+
+	rows, err := m.db.Reader.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +128,9 @@ func (m *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uin
 	var ids []uint32
 	var seqNum uint32
 	for rows.Next() {
+		var id int64
 		var u uint32
-		if err := rows.Scan(&u); err != nil {
+		if err := rows.Scan(&id, &u); err != nil {
 			continue
 		}
 		seqNum++

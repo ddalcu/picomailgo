@@ -1,11 +1,12 @@
 # Binary
+picomailgo
 gogomail
 
 # Data
 data/
 
-# Config (may contain secrets)
-config.toml
+# Environment
+.env
 
 # OS
 .DS_Store

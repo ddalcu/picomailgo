@@ -8,9 +8,9 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 
-	"gogomail/internal/auth"
-	"gogomail/internal/config"
-	"gogomail/internal/db"
+	"picomailgo/internal/auth"
+	"picomailgo/internal/config"
+	"picomailgo/internal/db"
 )
 
 // SubmissionBackend handles authenticated outbound mail submission (port 587).
@@ -36,7 +36,7 @@ func NewSubmissionServer(cfg *config.Config, database *db.DB, authSvc *auth.Serv
 	be := NewSubmissionBackend(cfg, database, authSvc, relay)
 	s := smtp.NewServer(be)
 	s.Addr = cfg.SMTP.SubmissionListen
-	s.Domain = cfg.Server.Hostname
+	s.Domain = cfg.Server.Domain
 	s.ReadTimeout = 60 * time.Second
 	s.WriteTimeout = 60 * time.Second
 	s.MaxMessageBytes = 25 * 1024 * 1024

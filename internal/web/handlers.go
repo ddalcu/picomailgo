@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"gogomail/internal/auth"
-	"gogomail/internal/email"
+	"picomailgo/internal/auth"
+	"picomailgo/internal/email"
 )
 
 // Template data types
@@ -255,7 +255,7 @@ func (s *Server) handleComposePage(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fromAddr := user.Username + "@" + s.cfg.Server.Hostname
+	fromAddr := user.Username + "@" + s.cfg.Server.Domain
 	s.render(w, "compose.html", map[string]any{
 		"Title":         "Compose",
 		"User":          user,
@@ -281,7 +281,7 @@ func (s *Server) handleCompose(w http.ResponseWriter, r *http.Request) {
 	subject := r.FormValue("subject")
 	body := r.FormValue("body")
 
-	fromAddr := user.Username + "@" + s.cfg.Server.Hostname
+	fromAddr := user.Username + "@" + s.cfg.Server.Domain
 	composeData := func(extra map[string]any) map[string]any {
 		data := map[string]any{
 			"Title": "Compose", "User": user, "ActiveMailbox": "",

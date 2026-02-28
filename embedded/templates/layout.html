@@ -3,11 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{if .Title}}{{.Title}} - {{end}}GoGoMail</title>
+    <meta name="color-scheme" content="dark">
+    <title>{{if .Title}}{{.Title}} - {{end}}PicoMailGo</title>
     <link rel="stylesheet" href="/static/style.css">
-    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <script src="/static/htmx.min.js"></script>
 </head>
 <body>
     {{block "body" .}}{{end}}
+
+    <script>
+    (function() {
+        /* Sidebar toggle (mobile) */
+        window.toggleSidebar = function() {
+            document.body.classList.toggle('sidebar-open');
+        };
+
+        window.closeSidebar = function() {
+            document.body.classList.remove('sidebar-open');
+        };
+
+        /* Reading pane back (mobile/tablet) */
+        window.closeReadingPane = function() {
+            document.body.classList.remove('reading-pane-open');
+            var pane = document.getElementById('reading-pane');
+            if (pane) {
+                pane.innerHTML = '<div class="reading-pane-empty">Select a message to read</div>';
+            }
+            /* Remove active state from message list */
+            document.querySelectorAll('.message-item.active').forEach(function(el) {
+                el.classList.remove('active');
+            });
+        };
+
+        /* HTMX: after message loads into reading pane */
+        document.addEventListener('htmx:afterSwap', function(evt) {
+            if (evt.detail.target && evt.detail.target.id === 'reading-pane') {
+                /* Show reading pane on mobile/tablet */
+                document.body.classList.add('reading-pane-open');
+
+                /* Mark clicked message as active */
+                document.querySelectorAll('.message-item.active').forEach(function(el) {
+                    el.classList.remove('active');
+                });
+                var trigger = evt.detail.requestConfig && evt.detail.requestConfig.elt;
+                if (trigger) {
+                    var item = trigger.closest('.message-item');
+                    if (item) item.classList.add('active');
+                }
+
+                /* Add back button for mobile/tablet */
+                var pane = evt.detail.target;
+                if (!pane.querySelector('.reading-pane-back')) {
+                    var backBtn = document.createElement('button');
+                    backBtn.className = 'reading-pane-back';
+                    backBtn.onclick = closeReadingPane;
+                    backBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></svg> Back to messages';
+                    pane.insertBefore(backBtn, pane.firstChild);
+                }
+            }
+        });
+
+        /* Prevent default navigation when HTMX handles it on desktop */
+        document.addEventListener('htmx:configRequest', function(evt) {
+            var target = evt.detail.target;
+            if (target && target.id === 'reading-pane') {
+                evt.detail.headers['HX-Reading-Pane'] = 'true';
+            }
+        });
+
+        /* Close sidebar when clicking backdrop */
+        document.addEventListener('click', function(evt) {
+            if (evt.target.classList.contains('sidebar-backdrop')) {
+                closeSidebar();
+            }
+        });
+
+        /* Close sidebar on nav link click (mobile) */
+        document.addEventListener('click', function(evt) {
+            var link = evt.target.closest('.sidebar-nav a');
+            if (link && window.innerWidth <= 768) {
+                closeSidebar();
+            }
+        });
+    })();
+    </script>
 </body>
 </html>

@@ -2,22 +2,23 @@
 {{define "body"}}
 <div class="auth-page">
     <div class="auth-card">
-        <h1>GoGoMail</h1>
+        <h1>PicoMailGo</h1>
+        <p class="auth-subtitle">Sign in to your account</p>
         {{if .Error}}
         <div class="alert alert-error">{{.Error}}</div>
         {{end}}
         <form method="POST" action="/login">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" class="form-control" required autofocus>
+                <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required autofocus>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" name="password" class="form-control" required>
+                <input type="password" id="password" name="password" class="form-control" placeholder="Enter your password" required>
             </div>
             <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
-        <p class="text-sm text-muted mt-1">Don't have an account? <a href="/register">Register</a></p>
+        <p class="auth-footer">Don't have an account? <a href="/register">Register</a></p>
     </div>
 </div>
 {{end}}

@@ -9,9 +9,9 @@ import (
 
 	"github.com/emersion/go-smtp"
 
-	"gogomail/internal/config"
-	"gogomail/internal/db"
-	"gogomail/internal/email"
+	"picomailgo/internal/config"
+	"picomailgo/internal/db"
+	"picomailgo/internal/email"
 )
 
 // InboundBackend handles incoming mail from remote MTAs.
@@ -33,7 +33,7 @@ func NewInboundServer(cfg *config.Config, database *db.DB) *smtp.Server {
 	be := NewInboundBackend(cfg, database)
 	s := smtp.NewServer(be)
 	s.Addr = cfg.SMTP.InboundListen
-	s.Domain = cfg.Server.Hostname
+	s.Domain = cfg.Server.Domain
 	s.ReadTimeout = 60 * time.Second
 	s.WriteTimeout = 60 * time.Second
 	s.MaxMessageBytes = 25 * 1024 * 1024 // 25MB

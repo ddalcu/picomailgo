@@ -1,14 +1,32 @@
 {{define "partials/sidebar.html"}}
+<div class="sidebar-backdrop" onclick="closeSidebar()"></div>
 <aside class="sidebar">
-    <div class="sidebar-brand">GoGoMail</div>
+    <div class="sidebar-header">
+        <div class="sidebar-brand">PicoMailGo</div>
+        <button class="sidebar-close" onclick="closeSidebar()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="sidebar-compose">
+        <a href="/compose" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg>
+            Compose
+        </a>
+    </div>
     <ul class="sidebar-nav">
         {{range .Mailboxes}}
-        <li><a href="/mailbox/{{.Name}}" {{if eq $.ActiveMailbox .Name}}class="active"{{end}}>{{.Name}}</a></li>
+        <li><a href="/mailbox/{{.Name}}" {{if eq $.ActiveMailbox .Name}}class="active"{{end}}>
+            <span class="nav-icon">{{if eq .Name "INBOX"}}&#9993;{{else if eq .Name "Sent"}}&#10148;{{else if eq .Name "Drafts"}}&#9998;{{else if eq .Name "Trash"}}&#9249;{{else}}&#9744;{{end}}</span>
+            {{.Name}}
+        </a></li>
         {{end}}
     </ul>
     <div class="sidebar-footer">
-        <div>{{.User.Username}}</div>
-        <a href="/settings">Settings</a> &middot; <a href="/logout">Logout</a>
+        <div class="sidebar-user">{{.User.Username}}</div>
+        <div class="sidebar-links">
+            <a href="/settings">Settings</a>
+            <a href="/logout">Logout</a>
+        </div>
     </div>
 </aside>
 {{end}}

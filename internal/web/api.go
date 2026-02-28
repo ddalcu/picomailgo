@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"gogomail/internal/auth"
+	"picomailgo/internal/auth"
 )
 
 func (s *Server) handleMessageList(w http.ResponseWriter, r *http.Request) {

@@ -3,66 +3,57 @@ package config
 import (
 	"os"
 	"path/filepath"
-
-	"github.com/BurntSushi/toml"
 )
 
 type Config struct {
-	Server ServerConfig `toml:"server"`
-	Web    WebConfig    `toml:"web"`
-	SMTP   SMTPConfig   `toml:"smtp"`
-	IMAP   IMAPConfig   `toml:"imap"`
-	TLS    TLSConfig    `toml:"tls"`
-	Auth   AuthConfig   `toml:"auth"`
+	Server ServerConfig
+	Web    WebConfig
+	SMTP   SMTPConfig
+	IMAP   IMAPConfig
+	TLS    TLSConfig
+	Auth   AuthConfig
 }
 
 type ServerConfig struct {
-	Hostname string `toml:"hostname"`
-	DataDir  string `toml:"data_dir"`
+	Domain  string
+	DataDir string
 }
 
 type WebConfig struct {
-	Listen     string `toml:"listen"`
-	HTTPListen string `toml:"http_listen"`
+	Listen     string
+	HTTPListen string
 }
 
 type SMTPConfig struct {
-	InboundListen    string `toml:"inbound_listen"`
-	SubmissionListen string `toml:"submission_listen"`
+	InboundListen    string
+	SubmissionListen string
 }
 
 type IMAPConfig struct {
-	Listen string `toml:"listen"`
+	Listen string
 }
 
 type TLSConfig struct {
-	Mode     string `toml:"mode"`
-	CertFile string `toml:"cert_file"`
-	KeyFile  string `toml:"key_file"`
+	Mode     string
+	CertFile string
+	KeyFile  string
 }
 
 type AuthConfig struct {
-	JWTSecret string `toml:"jwt_secret"`
+	JWTSecret string
 }
 
-func Load(path string) (*Config, error) {
+func Load() *Config {
 	cfg := defaults()
-
-	if path != "" {
-		if _, err := toml.DecodeFile(path, cfg); err != nil {
-			return nil, err
-		}
-	}
-
 	applyEnv(cfg)
-	return cfg, nil
+	return cfg
 }
 
 func defaults() *Config {
 	return &Config{
 		Server: ServerConfig{
-			Hostname: "localhost",
-			DataDir:  "./data",
+			Domain:  "localhost",
+			DataDir: "./data",
 		},
 		Web: WebConfig{
 			Listen:     ":8080",
@@ -85,17 +76,17 @@ func defaults() *Config {
 }
 
 func applyEnv(cfg *Config) {
-	envStr(&cfg.Server.Hostname, "GOGOMAIL_HOSTNAME")
-	envStr(&cfg.Server.DataDir, "GOGOMAIL_DATA_DIR")
-	envStr(&cfg.Web.Listen, "GOGOMAIL_WEB_LISTEN")
-	envStr(&cfg.Web.HTTPListen, "GOGOMAIL_HTTP_LISTEN")
-	envStr(&cfg.SMTP.InboundListen, "GOGOMAIL_SMTP_INBOUND_LISTEN")
-	envStr(&cfg.SMTP.SubmissionListen, "GOGOMAIL_SMTP_SUBMISSION_LISTEN")
-	envStr(&cfg.IMAP.Listen, "GOGOMAIL_IMAP_LISTEN")
-	envStr(&cfg.TLS.Mode, "GOGOMAIL_TLS_MODE")
-	envStr(&cfg.TLS.CertFile, "GOGOMAIL_TLS_CERT_FILE")
-	envStr(&cfg.TLS.KeyFile, "GOGOMAIL_TLS_KEY_FILE")
-	envStr(&cfg.Auth.JWTSecret, "GOGOMAIL_JWT_SECRET")
+	envStr(&cfg.Server.Domain, "MAIL_DOMAIN")
+	envStr(&cfg.Server.DataDir, "DATA_DIR")
+	envStr(&cfg.Web.Listen, "WEB_LISTEN")
+	envStr(&cfg.Web.HTTPListen, "HTTP_LISTEN")
+	envStr(&cfg.SMTP.InboundListen, "SMTP_INBOUND_LISTEN")
+	envStr(&cfg.SMTP.SubmissionListen, "SMTP_SUBMISSION_LISTEN")
+	envStr(&cfg.IMAP.Listen, "IMAP_LISTEN")
+	envStr(&cfg.TLS.Mode, "TLS_MODE")
+	envStr(&cfg.TLS.CertFile, "TLS_CERT_FILE")
+	envStr(&cfg.TLS.KeyFile, "TLS_KEY_FILE")
+	envStr(&cfg.Auth.JWTSecret, "JWT_SECRET")
 }
 
 func envStr(target *string, key string) {
@@ -106,5 +97,5 @@ func envStr(target *string, key string) {
 
 // DBPath returns the full path to the SQLite database file.
 func (c *Config) DBPath() string {
-	return filepath.Join(c.Server.DataDir, "gogomail.db")
+	return filepath.Join(c.Server.DataDir, "mail.db")
 }

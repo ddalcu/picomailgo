@@ -23,6 +23,15 @@ func Open(path string) (*DB, error) {
 		return nil, fmt.Errorf("create data dir: %w", err)
 	}
 
+	// Migrate from old DB filename (gogomail.db → mail.db)
+	if oldPath := filepath.Join(dir, "gogomail.db"); path != oldPath {
+		if _, err := os.Stat(oldPath); err == nil {
+			if _, err := os.Stat(path); os.IsNotExist(err) {
+				os.Rename(oldPath, path)
+			}
+		}
+	}
+
 	// Writer: single connection to serialize writes
 	writer, err := sql.Open("sqlite", path+"?_pragma=journal_mode(wal)&_pragma=busy_timeout(5000)&_pragma=foreign_keys(1)")
 	if err != nil {

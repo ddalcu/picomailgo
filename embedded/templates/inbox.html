@@ -2,14 +2,22 @@
 {{define "body"}}
 <div class="app-layout">
     {{template "partials/sidebar.html" .}}
-    <div class="main-content">
-        <div class="toolbar">
+    <div class="message-list-pane">
+        <div class="list-header">
+            <button class="hamburger" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18"/><path d="M3 6h18"/><path d="M3 18h18"/></svg>
+            </button>
             <h1>{{.Mailbox}}</h1>
-            <a href="/compose" class="btn btn-primary">Compose</a>
         </div>
-        <div id="message-list">
+        <div class="list-scroll" id="message-list"
+             hx-get="/api/messages?mailbox={{.Mailbox}}&offset=0"
+             hx-trigger="every 30s"
+             hx-swap="innerHTML">
             {{template "partials/message-list.html" .}}
         </div>
+    </div>
+    <div class="reading-pane" id="reading-pane">
+        <div class="reading-pane-empty">Select a message to read</div>
     </div>
 </div>
 {{end}}

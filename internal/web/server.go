@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"gogomail/internal/auth"
-	"gogomail/internal/config"
-	"gogomail/internal/db"
+	"picomailgo/internal/auth"
+	"picomailgo/internal/config"
+	"picomailgo/internal/db"
 )
 
 // MailSender sends email and saves to Sent folder.
@@ -77,13 +77,17 @@ func parseTemplates(fsys fs.FS) (map[string]*template.Template, error) {
 }
 
 func (s *Server) routes(staticFS fs.FS) {
+	// Static assets — no rate limiting
 	s.mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 
-	s.mux.HandleFunc("GET /login", s.handleLoginPage)
-	s.mux.HandleFunc("POST /login", s.handleLogin)
-	s.mux.HandleFunc("GET /register", s.handleRegisterPage)
-	s.mux.HandleFunc("POST /register", s.handleRegister)
-	s.mux.HandleFunc("GET /logout", s.handleLogout)
+	// Rate limit all non-static routes
+	limiter := NewRateLimiter(120, time.Minute)
+
+	s.mux.Handle("GET /login", limiter.Middleware(http.HandlerFunc(s.handleLoginPage)))
+	s.mux.Handle("POST /login", limiter.Middleware(http.HandlerFunc(s.handleLogin)))
+	s.mux.Handle("GET /register", limiter.Middleware(http.HandlerFunc(s.handleRegisterPage)))
+	s.mux.Handle("POST /register", limiter.Middleware(http.HandlerFunc(s.handleRegister)))
+	s.mux.Handle("GET /logout", limiter.Middleware(http.HandlerFunc(s.handleLogout)))
 
 	protected := http.NewServeMux()
 	protected.HandleFunc("GET /", s.handleRoot)
@@ -96,7 +100,7 @@ func (s *Server) routes(staticFS fs.FS) {
 	protected.HandleFunc("GET /api/messages", s.handleMessageList)
 	protected.HandleFunc("DELETE /api/messages/{id}", s.handleDeleteMessage)
 
-	s.mux.Handle("/", s.auth.Middleware(protected))
+	s.mux.Handle("/", limiter.Middleware(s.auth.Middleware(protected)))
 }
 
 func (s *Server) Handler() http.Handler {
@@ -110,7 +114,7 @@ func (s *Server) render(w http.ResponseWriter, name string, data any) {
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmpl.Execute(w, data); err != nil {
+	if err := tmpl.ExecuteTemplate(w, name, data); err != nil {
 		http.Error(w, "template error", http.StatusInternalServerError)
 	}
 }
