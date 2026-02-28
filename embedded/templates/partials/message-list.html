@@ -1,0 +1,26 @@
+{{define "partials/message-list.html"}}
+{{if .Messages}}
+<ul class="message-list">
+    {{range .Messages}}
+    <li>
+        <a href="/message/{{.ID}}" class="message-item {{if not .Seen}}unread{{end}}">
+            <div>
+                <div class="message-from">{{.From}}</div>
+                <div class="message-subject">{{.Subject}}</div>
+            </div>
+            <div class="message-date">{{.DateFormatted}}</div>
+        </a>
+    </li>
+    {{end}}
+</ul>
+{{if .HasMore}}
+<div hx-get="/api/messages?mailbox={{.ActiveMailbox}}&offset={{.NextOffset}}"
+     hx-trigger="revealed"
+     hx-swap="outerHTML">
+    Loading...
+</div>
+{{end}}
+{{else}}
+<div class="empty-state">No messages</div>
+{{end}}
+{{end}}

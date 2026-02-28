@@ -1,0 +1,14 @@
+{{define "partials/sidebar.html"}}
+<aside class="sidebar">
+    <div class="sidebar-brand">GoGoMail</div>
+    <ul class="sidebar-nav">
+        {{range .Mailboxes}}
+        <li><a href="/mailbox/{{.Name}}" {{if eq $.ActiveMailbox .Name}}class="active"{{end}}>{{.Name}}</a></li>
+        {{end}}
+    </ul>
+    <div class="sidebar-footer">
+        <div>{{.User.Username}}</div>
+        <a href="/settings">Settings</a> &middot; <a href="/logout">Logout</a>
+    </div>
+</aside>
+{{end}}

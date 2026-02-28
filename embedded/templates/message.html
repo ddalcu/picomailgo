@@ -1,0 +1,28 @@
+{{template "layout.html" .}}
+{{define "body"}}
+<div class="app-layout">
+    {{template "partials/sidebar.html" .}}
+    <div class="main-content">
+        <div class="message-actions">
+            <a href="/mailbox/{{.Mailbox}}" class="btn btn-outline btn-sm">Back</a>
+            <a href="/compose?reply={{.Message.ID}}" class="btn btn-outline btn-sm">Reply</a>
+            <a href="/compose?forward={{.Message.ID}}" class="btn btn-outline btn-sm">Forward</a>
+            <button class="btn btn-danger btn-sm"
+                    hx-delete="/api/messages/{{.Message.ID}}"
+                    hx-confirm="Delete this message?"
+                    hx-target="body">Delete</button>
+        </div>
+        <div class="message-header">
+            <h2>{{.Message.Subject}}</h2>
+            <div class="message-meta">
+                <div>From: {{.Message.From}}</div>
+                <div>To: {{.Message.To}}</div>
+                <div>Date: {{.Message.DateFormatted}}</div>
+            </div>
+        </div>
+        <div class="message-body">
+            {{.Message.Body}}
+        </div>
+    </div>
+</div>
+{{end}}

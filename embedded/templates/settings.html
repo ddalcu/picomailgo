@@ -1,0 +1,32 @@
+{{template "layout.html" .}}
+{{define "body"}}
+<div class="app-layout">
+    {{template "partials/sidebar.html" .}}
+    <div class="main-content">
+        <div class="toolbar">
+            <h1>Settings</h1>
+        </div>
+        {{if .Error}}
+        <div class="alert alert-error">{{.Error}}</div>
+        {{end}}
+        {{if .Success}}
+        <div class="alert alert-success">{{.Success}}</div>
+        {{end}}
+        <form method="POST" action="/settings">
+            <div class="form-group">
+                <label for="display_name">Display Name</label>
+                <input type="text" id="display_name" name="display_name" class="form-control" value="{{.DisplayName}}">
+            </div>
+            <div class="form-group">
+                <label for="current_password">Current Password</label>
+                <input type="password" id="current_password" name="current_password" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="new_password">New Password</label>
+                <input type="password" id="new_password" name="new_password" class="form-control" minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+    </div>
+</div>
+{{end}}

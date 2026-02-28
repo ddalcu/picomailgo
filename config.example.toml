@@ -1,0 +1,26 @@
+# GoGoMail Configuration
+
+[server]
+hostname = "mail.example.com"
+data_dir = "./data"
+
+[web]
+listen = ":443"
+http_listen = ":80"
+
+[smtp]
+inbound_listen = ":25"
+submission_listen = ":587"
+
+[imap]
+listen = ":993"
+
+[tls]
+# "autocert", "manual", or "none"
+mode = "none"
+# For manual mode:
+# cert_file = "/path/to/cert.pem"
+# key_file = "/path/to/key.pem"
+
+[auth]
+jwt_secret = "change-me-to-a-random-secret"
